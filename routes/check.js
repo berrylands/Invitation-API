@@ -7,6 +7,19 @@ const Nano = require('nano');
 const nano = Nano(process.env.COUCH_URL);
 const db = nano.db.use(process.env.COUCH_INVITATIONS_DATABASE);
 
+function purgeExpiredInvitation(doc){
+
+    return db.destroy(doc._id, doc._rev)
+        .then((body) => {
+            debug(`purgeExpiredInvitation (${doc._id}) result:`, body);
+        })
+        .catch(err => {
+            debug(`purgeExpiredInvitation (${doc._id}) err:`, err);
+        })
+    ;
+
+}
+
 router.post('/:INVITEID', async (req, res, next) => {
 
     let invite;
@@ -34,6 +47,9 @@ router.post('/:INVITEID', async (req, res, next) => {
                 status : "err",
                 message : `Invitation "${req.params.INVITEID}" has expired`
             });
+
+            purgeExpiredInvitation(invite);
+
         } else {
 
             const allowableProperties = ["creator", "choirId", "invitee", "expires"];
