@@ -10,7 +10,7 @@ Checks whether a known invitation is valid and will return details for that invi
 
 #### Success response:
 
-```json
+```
 {
     "status": "ok",
     "invitation": {
