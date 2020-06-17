@@ -4,7 +4,7 @@ const router = require('express').Router();
 const kuuid = require('kuuid');
 
 const nano = Nano(process.env.COUCH_URL)
-const db = nano.db.use(process.env.COUCH_KEYS_DATABASE)
+const db = nano.db.use(process.env.COUCH_KEYS_DATABASE);
 
 router.get('/', (req, res, next) => {
 	res.sendFile(`${__dirname}/static/key-management.html`);
@@ -18,8 +18,9 @@ router.post('/create', async (req, res, next) => {
 		_id: kuuid.id(),
 		owner: res.locals.w3id_userid,
 		name: req.body.keyname,
-		created: Date.now()
-	}
+		created: Date.now(),
+		service: process.env.SERVICE_NAME
+	};
 
 	await db.insert(keyDetails)
 
@@ -68,17 +69,31 @@ router.get('/list', async (req, res, next) => {
   const whitelistProperties = ['_id', 'owner', 'name', 'created']
 
   const keys = await db.list({ include_docs: true }).then((result) => {
-	const sanitisedOutput = result.rows.map(doc => {
-	  const sanitisedDoc = {}
+	
+	const sanitisedOutput = result.rows.map(entry => {
+		
+		let sanitisedDoc = null;
 
-	  whitelistProperties.forEach(key => {
-		sanitisedDoc[key] = doc.doc[key]
-	  })
+		debug(entry, entry.doc.service, process.env.SERVICE_NAME);
 
-	  return sanitisedDoc
-	})
+		if(entry.doc.service === process.env.SERVICE_NAME){
 
-	return sanitisedOutput
+			sanitisedDoc = {};
+	
+			whitelistProperties.forEach(key => {
+				sanitisedDoc[key] = entry.doc[key]
+			});
+	
+		}
+
+		return sanitisedDoc;
+		
+	}).filter(doc => {
+		return doc !== null;
+	});
+
+	return sanitisedOutput;
+
   })
 
   res.json({
