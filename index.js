@@ -23,6 +23,19 @@ app.use('*', keyProtect);
 app.use('/check', require(`${__dirname}/routes/check`));
 app.use('/create', require(`${__dirname}/routes/create`));
 
+app.use(function(err, req, res, next) {
+	// set locals, only providing error in development
+	res.locals.message = err.message;
+	res.locals.error = req.app.get('env') === 'development' ? err : {};
+
+	// render the error page
+	res.status(err.status || 500);
+    res.json({
+        status : "error",
+        message : "Could not process request"
+    });
+    
+});
 
 app.listen(PORT, () => {
     debug(`Server listening on ${PORT}`)

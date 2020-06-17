@@ -26,6 +26,7 @@ router.post('/', async (req, res, next) => {
 
     if(missingParameters.length > 0){
 
+        res.status(422);
         res.json({
             status : "err",
             message : `Parameters missing from invitation creation "${missingParameters.join('", "')}"`
