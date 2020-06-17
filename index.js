@@ -3,8 +3,21 @@ const debug = require('debug')('app:index');
 const w3id = require('w3id-middleware');
 const express = require('express');
 const bodyParser = require('body-parser');
+const express_enforces_ssl = require('express-enforces-ssl');
+const hsts = require('hsts');
 const app = express();
 const PORT = process.env.PORT || 3000;
+
+app.enable('trust proxy');
+
+if(process.env.NODE_ENV === "production"){
+	
+	app.use(express_enforces_ssl());
+	app.use(hsts({
+		maxAge: 86400 // 1 day in seconds
+	}));
+
+}
 
 const keyProtect = require(`${__dirname}/middleware/checkAPIKey`);
 const whitelist = require(`${__dirname}/middleware/whitelist`);
